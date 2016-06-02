@@ -36,8 +36,8 @@ while 1:
 
         url = 'http://api.forismatic.com/api/1.0/'
         params = 'method=getQuote&key=457653&format=json&lang=en'
-
         respJson = urllib2.urlopen(url, params).read()
+
         #Repair invalid json escape character
         repairMap = repair(respJson)
         respMap = json.loads(repairMap)
@@ -47,15 +47,10 @@ while 1:
         quoteText = respMap["quoteText"]
         quoteAuthor = respMap["quoteAuthor"]
         quote = list(quoteText + ' -' + quoteAuthor)
-        # quote = quoteText + ' -' + quoteAuthor
 
         myLcd = lcd.Jhd1313m1(0, 0x3E, 0x62)
         myLcd.setColor(random.randrange(0,255), random.randrange(0,255), random.randrange(0,255))
         myLcd.cursorBlinkOn()
-
-        # myLcd.autoScrollOn()
-        # myLcd.setCursor(0,0)
-        # myLcd.write(quote)
 
         line = 0
 
@@ -80,4 +75,3 @@ while 1:
         myLcd.clear()
         myLcd.cursorBlinkOff()
         myLcd.setColor(0,0,0)
-
