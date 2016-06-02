@@ -10,15 +10,16 @@ import mraa
 touchPin = mraa.Gpio(6)
 touchPin.dir(mraa.DIR_IN)
 
-# digital output - buzzer in D8
-buzPin = mraa.Gpio(8) 
-buzPin.dir(mraa.DIR_OUT)
+# digital output - led in D8
+ledPin = mraa.Gpio(8) 
+ledPin.dir(mraa.DIR_OUT)
+ledPin.write(0)
 
 # Some invalid json repair: http://stackoverflow.com/questions/15198426/fixing-invalid-json-escape
 invalid_escape = re.compile(r'\\[0-7]{1,6}')  # up to 3 digits for byte values up to FF
 
 def replace_with_byte(match):
-        return chr(int(match.group(0)[1:], 8))
+        return unichr(int(match.group(0)[1:], 8))
 
 def repair(brokenjson):
             return invalid_escape.sub(replace_with_byte, brokenjson) 
@@ -26,11 +27,8 @@ def repair(brokenjson):
 
 while 1:
     while touchPin.read() == 1:
-        buzPin.write(1)
-        sleep(1)
-        buzPin.write(0)
-
-        sleep(1)
+        ledPin.write(1)
+        sleep(2)
 
         print "Getting some quotes online..."
 
@@ -38,15 +36,19 @@ while 1:
         params = 'method=getQuote&key=457653&format=json&lang=en'
         respJson = urllib2.urlopen(url, params).read()
 
-        #Repair invalid json escape character
-        repairMap = repair(respJson)
-        respMap = json.loads(repairMap)
+        try:
+            #Repair invalid json escape character
+            repairMap = repair(respJson)
+            respMap = json.loads(repairMap)
 
-        print "Quotes received!"
+            print "Quotes received!"
 
-        quoteText = respMap["quoteText"]
-        quoteAuthor = respMap["quoteAuthor"]
-        quote = list(quoteText + ' -' + quoteAuthor)
+            quoteText = respMap["quoteText"]
+            quoteAuthor = respMap["quoteAuthor"]
+            quote = list(quoteText + ' -' + quoteAuthor)
+        except:
+            print "Illegal character found, using generic"
+            quote = list("Today is gonna be a great day.-")
 
         myLcd = lcd.Jhd1313m1(0, 0x3E, 0x62)
         myLcd.setColor(random.randrange(0,255), random.randrange(0,255), random.randrange(0,255))
@@ -75,3 +77,4 @@ while 1:
         myLcd.clear()
         myLcd.cursorBlinkOff()
         myLcd.setColor(0,0,0)
+        ledPin.write(0)
